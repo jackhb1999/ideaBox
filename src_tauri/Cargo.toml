@@ -22,4 +22,14 @@ tauri = { version = "2", features = [] }
 tauri-plugin-shell = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+tokio = { version = "1.45.0", features = ["full"] }
+tracing = { version = "0.1.41", features = ["async-await"] }
+tracing-subscriber = { version = "0.3.19", features = ["env-filter", "chrono"] }
+anyhow = "1.0.98"
+sea-orm = { version = "1.1.11", features = ["with-chrono", "debug-print", "sqlx-sqlite", "with-rust_decimal", "runtime-tokio"] }
+num_cpus = "1.16.0"
+thiserror = "2.0.12"
+# 用于sql连接依赖 需要顶层 sqlite3.dll 和 sqlite3.lib
+rusqlite = "0.32.1"
+dirs = "6"
 

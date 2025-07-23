@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+
+.vscode
+src_tauri/target
+package-lock.json
+Cargo.lock
+target

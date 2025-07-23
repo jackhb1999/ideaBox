@@ -1,160 +1,297 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { invoke } from "@tauri-apps/api/core";
+import {Reactive, reactive, ref} from "vue";
+import {invoke} from "@tauri-apps/api/core";
+import {SettingOutlined} from '@ant-design/icons-vue';
+import {message} from 'ant-design-vue';
 
-const greetMsg = ref("");
-const name = ref("");
+// const greetMsg = ref("");
+// const name = ref("");
 
-async function greet() {
-  // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-  greetMsg.value = await invoke("greet", { name: name.value });
+// const color = ref("");
+//
+// async function changeColor(colorVal: string) {
+//   color.value = colorVal;
+// }
+
+import {useWindowSize} from '@vueuse/core'
+import {CardStatus, Color, Item, newItem} from "../src/types/Item.ts";
+
+const {width} = useWindowSize()
+
+// const showNotification = () => {
+//   notification.info({
+//     message: `功能还未实现`,
+//     placement: 'topLeft',
+//   });
+// };
+
+const showMessage = () => {
+  message.info('功能还未实现!');
+};
+
+// 列表
+const listData: Reactive<Item[]> = reactive([
+  {
+    color: Color.blue,
+    content: '',
+    createTime: new Date(),
+    updateTime: undefined,
+    status: CardStatus.edit,
+    order: 0
+  },
+  {
+    color: Color.blue,
+    content: '我思故我在 在一在二在三在四 在五在六在其再把在救灾是',
+    createTime: new Date(),
+    updateTime: undefined,
+    status: CardStatus.view,
+    order: 0
+  },
+  {
+    color: Color.red,
+    content: '我思故我在',
+    createTime: new Date(),
+    updateTime: undefined,
+    status: CardStatus.fold,
+    order: 0
+  },
+  {
+    color: Color.orange,
+    content: '我思故我在 在一在二在三在四 在五在六在其再把在救灾是',
+    createTime: new Date(),
+    updateTime: undefined,
+    status: CardStatus.fold,
+    order: 0
+  },
+  {
+    color: Color.lime,
+    content: '我思故我在',
+    createTime: new Date(),
+    updateTime: undefined,
+    status: CardStatus.fold,
+    order: 0
+  },
+  {
+    color: Color.rose,
+    content: '我思故我在',
+    createTime: new Date(),
+    updateTime: undefined,
+    status: CardStatus.fold,
+    order: 0
+  },
+
+])
+
+// 新增
+async function addItem() {
+  const NewItem = new newItem();
+  console.log(88, listData.indexOf(NewItem.addItem))
+  if (listData.indexOf(NewItem.addItem) === -1) {
+    listData.unshift(NewItem.addItem)
+  }
 }
+
+// 修改
+async function updateItem(item: Item) {
+  item.status = CardStatus.view
+}
+
+// 删除
+async function deleteItem(item: Item) {
+  const index = listData.indexOf(item);
+  if (index !== -1) {
+    listData.splice(index, 1); // 移除第一个 2
+  }
+}
+
+const foldStatus = ref(false);
+
+// 展开
+async function foldOn() {
+  listData.forEach((item: Item) => {
+    if (item.status !== CardStatus.edit) {
+      item.status = CardStatus.view
+    }
+  })
+  foldStatus.value = false;
+}
+
+// 收起
+async function foldOff() {
+  listData.forEach((item: Item) => {
+    if (item.status !== CardStatus.edit) {
+      item.status = CardStatus.fold
+    }
+  })
+  foldStatus.value = true;
+}
+
+async function getList() {
+  const list:Item[] = await invoke("list", {});
+  console.log(131,list)
+  listData.push(...list)
+}
+getList()
+// async function greet() {
+//   // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+//   greetMsg.value = await invoke("greet", {name: name.value});
+// }
 </script>
 
 <template>
-  <main class="container">
-    <h1>Welcome to Tauri + Vue</h1>
+  <main class="space-y-1">
 
-    <div class="row">
-      <a href="https://vitejs.dev" target="_blank">
-        <img src="/vite.svg" class="logo vite" alt="Vite logo" />
-      </a>
-      <a href="https://tauri.app" target="_blank">
-        <img src="/tauri.svg" class="logo tauri" alt="Tauri logo" />
-      </a>
-      <a href="https://vuejs.org/" target="_blank">
-        <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-      </a>
+    <div class="justify-items-end">
+      <!--      最上bar-->
+      <div class="bg-gradient-to-bl from-dark-50 via-gray-700 to-dark-50 bg-blend-color-dodge
+      backdrop-blur-sm flex basis-full h-2em w-12em justify-between items-center">
+        <div class="inline-block backdrop-blur-sm bg-dark-700 select-none">
+          <span>1</span>
+        </div>
+        <div class="inline-block text-zinc-50">
+          <SettingOutlined @click="showMessage"/>
+        </div>
+        <div class="inline-block text-zinc-50">
+          <ColumnHeightOutlined v-if="foldStatus" @click="foldOn"/>
+
+          <VerticalAlignMiddleOutlined v-else="foldStatus" @click="foldOff"/>
+        </div>
+        <div class="inline-block text-zinc-50">
+          <PlusCircleOutlined @click="addItem"/>
+        </div>
+        <div class="inline-block mr-4 text-zinc-50">
+          <ArrowRightOutlined @click="showMessage"/>
+        </div>
+      </div>
     </div>
-    <p>Click on the Tauri, Vite, and Vue logos to learn more.</p>
-
-    <form class="row" @submit.prevent="greet">
-      <input id="greet-input" v-model="name" placeholder="Enter a name..." />
-      <button type="submit">Greet</button>
-    </form>
-    <p>{{ greetMsg }}</p>
+    <template v-for="item in listData">
+      <div class="justify-items-end" v-if="item.status === CardStatus.edit">
+        <!--      新增卡片-->
+        <a-card hoverable class="container" :style="{width,backgroundColor:item.color}">
+          <template #cover>
+            <a-flex gap="middle" vertical>
+              <a-row>
+                <a-col :span="4">
+                  <a-divider>
+                    <a-button type="dashed" shape="circle" ghost block @click="item.color = Color.blue">
+                      <template #icon>
+                        <BuildTwoTone :two-tone-color="Color.blue"/>
+                      </template>
+                    </a-button>
+                  </a-divider>
+                </a-col>
+                <a-col :span="4">
+                  <a-divider>
+                    <a-button type="dashed" shape="circle" ghost block @click="item.color = Color.red">
+                      <template #icon>
+                        <ExclamationCircleTwoTone :two-tone-color="Color.red"/>
+                      </template>
+                    </a-button>
+                  </a-divider>
+                </a-col>
+                <a-col :span="4">
+                  <a-divider>
+                    <a-button type="dashed" shape="circle" ghost block @click="item.color = Color.orange">
+                      <template #icon>
+                        <CarryOutTwoTone :two-tone-color="Color.orange"/>
+                      </template>
+                    </a-button>
+                  </a-divider>
+                </a-col>
+                <a-col :span="4">
+                  <a-divider>
+                    <a-button type="dashed" shape="circle" ghost block @click="item.color  = Color.lime">
+                      <template #icon>
+                        <MessageTwoTone :two-tone-color="Color.lime"/>
+                      </template>
+                    </a-button>
+                  </a-divider>
+                </a-col>
+                <a-col :span="4">
+                  <a-divider>
+                    <a-button type="dashed" shape="circle" ghost block @click="item.color = Color.rose">
+                      <template #icon>
+                        <PushpinTwoTone :two-tone-color="Color.rose"/>
+                      </template>
+                    </a-button>
+                  </a-divider>
+                </a-col>
+                <a-col :span="4">
+                  <a-divider>
+                    <a-button type="dashed" shape="circle" ghost block @click="item.color  = Color.purple">
+                      <template #icon>
+                        <BulbTwoTone :two-tone-color="Color.purple"/>
+                      </template>
+                    </a-button>
+                  </a-divider>
+                </a-col>
+              </a-row>
+            </a-flex>
+          </template>
+          <template #actions>
+            <CheckOutlined @click="updateItem(item)"/>
+            <CloseOutlined/>
+          </template>
+          <a-card-meta>
+            <template #description>
+              <a-textarea
+                  v-model:value="item.content"
+                  placeholder=""
+                  auto-size
+              />
+            </template>
+          </a-card-meta>
+        </a-card>
+      </div>
+      <div class="justify-items-end" v-else-if="item.status === CardStatus.view">
+        <!--      查看卡片-->
+        <a-card hoverable class="container" :style="{width,backgroundColor:item.color}">
+          <a-card-meta>
+            <template #description>
+              <div class="font-sans text-base font-normal hyphens-auto  leading-snug break-words
+             text-white" @click="item.status++">
+                {{ item.content }}
+              </div>
+            </template>
+          </a-card-meta>
+          <template #actions>
+            <DeleteOutlined @click="deleteItem(item)"/>
+            <ShareAltOutlined @click="showMessage"/>
+            <CoffeeOutlined @click="showMessage"/>
+          </template>
+        </a-card>
+      </div>
+      <div class="justify-items-end w-auto"
+           v-else-if="item.status === CardStatus.fold && (width / item.content.length <20 )">
+        <!--      折叠卡片-->
+        <a-card hoverable class="container outline-white" :style="{width,backgroundColor:item.color}">
+          <a-card-meta>
+            <template #description>
+              <div class="font-sans text-base font-normal hyphens-auto tracking-wider leading-snug
+            truncate text-white" @click="item.status++">
+                {{ item.content }}
+              </div>
+            </template>
+          </a-card-meta>
+        </a-card>
+      </div>
+      <div class="justify-items-end w-auto" v-else>
+        <a-card hoverable class="outline-white" :style="{backgroundColor:item.color}">
+          <a-card-meta>
+            <template #description>
+              <div class="font-sans text-base font-normal hyphens-auto tracking-wider leading-snug
+            truncate text-white" @click="item.status++"> {{ item.content }}
+              </div>
+            </template>
+          </a-card-meta>
+        </a-card>
+      </div>
+    </template>
   </main>
 </template>
 
 <style scoped>
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
+::v-deep(.ant-card-body) {
+  padding: 10px;
 }
-
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #249b73);
-}
-
-</style>
-<style>
-:root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
-
-  color: #0f0f0f;
-  background-color: #f6f6f6;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-}
-
-.container {
-  margin: 0;
-  padding-top: 10vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
-}
-
-.logo.tauri:hover {
-  filter: drop-shadow(0 0 2em #24c8db);
-}
-
-.row {
-  display: flex;
-  justify-content: center;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-
-a:hover {
-  color: #535bf2;
-}
-
-h1 {
-  text-align: center;
-}
-
-input,
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-}
-
-button {
-  cursor: pointer;
-}
-
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
-}
-
-input,
-button {
-  outline: none;
-}
-
-#greet-input {
-  margin-right: 5px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f6f6f6;
-    background-color: #2f2f2f;
-  }
-
-  a:hover {
-    color: #24c8db;
-  }
-
-  input,
-  button {
-    color: #ffffff;
-    background-color: #0f0f0f98;
-  }
-  button:active {
-    background-color: #0f0f0f69;
-  }
-}
-
 </style>
