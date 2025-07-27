@@ -41,10 +41,4 @@ impl<T> ApiResponse<T> {
     }
 }
 
-// impl<T: Serialize> IpcResponse for ApiResponse<T> {
-//     fn body(self) -> tauri::Result<InvokeResponseBody> {
-//         serde_json::to_string(&self)
-//             .map(Into::into)
-//             .map_err(Into::into)
-//     }
-// }
+

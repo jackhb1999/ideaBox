@@ -1,9 +1,12 @@
 use crate::entity::prelude::*;
 use crate::entity::test_table;
-use crate::error::ApiError;
+use crate::entity::test_table::ActiveModel;
+use crate::error::{ApiError, ApiResult};
+use crate::response::ApiResponse;
 use rusqlite::ffi::sqlite3_complete;
 use sea_orm::prelude::*;
-use sea_orm::{DatabaseConnection, EntityTrait, QueryOrder};
+use sea_orm::{ActiveValue, DatabaseConnection, EntityTrait, IntoActiveModel, QueryOrder};
+use serde::Deserialize;
 use tauri::State;
 
 #[tauri::command]
@@ -19,15 +22,28 @@ pub async fn list(db: State<'_, DatabaseConnection>) -> Result<String, ()> {
     result.map_err(|_| ())
 }
 
-// async fn create(
-//     db: State<'_, DatabaseConnection>
-// ) -> ApiResult<ApiResponse<user::Model>> {
-//     let mut active_model = params.into_active_model();
-//     active_model.password =
-//         ActiveValue::Set(encode_password(&active_model.password.take().unwrap())?);
-//     let result = active_model.insert(&db).await?;
-//     Ok(ApiResponse::success(Some(result)))
-// }
+#[derive(Deserialize, Debug, DeriveIntoActiveModel)]
+pub struct CardParams {
+    pub color: String,
+    pub content: String,
+    pub create_time: String,
+    pub update_time: String,
+    pub status: String,
+    pub is_delete: i32,
+}
+
+#[tauri::command]
+pub async fn create(
+    db: State<'_, DatabaseConnection>,
+    params: CardParams,
+// ) -> ApiResult<ApiResponse<test_table::Model>> {
+) -> Result<ApiResponse<test_table::Model>,()> {
+    let conn = db.inner();
+    let mut active_model = params.into_active_model();
+    active_model.is_delete = ActiveValue::Set(0);
+    let result = active_model.insert(conn).await.unwrap();
+    Ok(ApiResponse::success(Some(result)))
+}
 //
 //
 // async fn update(

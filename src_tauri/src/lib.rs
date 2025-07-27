@@ -9,7 +9,7 @@ use rusqlite::Connection;
 use sea_orm::{ConnectionTrait, Database, DatabaseConnection, DbBackend, Statement};
 use std::path::{Path, PathBuf};
 use tauri::State;
-use crate::handle::list;
+use crate::handle::{list,create};
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -26,7 +26,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .manage(db)
-        .invoke_handler(tauri::generate_handler![greet,list])
+        .invoke_handler(tauri::generate_handler![greet,list,create])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
