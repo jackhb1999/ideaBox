@@ -21,7 +21,7 @@ pub struct Model {
     #[sea_orm(column_name = "updateTime", column_type = "Text")]
     pub update_time: String,
     #[sea_orm(column_type = "Text")]
-    pub status: String,
+    pub status: i8,
     #[sea_orm(column_name = "isDelete")]
     pub is_delete: i32,
 }

@@ -94,6 +94,11 @@ async function addItem() {
 // 修改
 async function updateItem(item: Item) {
   item.status = CardStatus.view
+  item.updateTime = item.createTime
+
+  invoke("create", {params:item}).then((res) => {
+    console.log(98, res)
+  })
 }
 
 // 删除

@@ -26,10 +26,9 @@ pub async fn list(db: State<'_, DatabaseConnection>) -> Result<String, ()> {
 pub struct CardParams {
     pub color: String,
     pub content: String,
-    pub create_time: String,
-    pub update_time: String,
-    pub status: String,
-    pub is_delete: i32,
+    // pub create_time: String,
+    // pub update_time: String,
+    pub status: i8,
 }
 
 #[tauri::command]
