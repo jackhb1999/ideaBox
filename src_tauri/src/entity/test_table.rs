@@ -5,6 +5,7 @@ use sea_orm::entity::prelude::*;
 use sea_orm::prelude::async_trait::async_trait;
 use sea_orm::sqlx::types::uuid::Version::Random;
 use serde::{Deserialize, Serialize};
+use crate::id;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
 #[sea_orm(table_name = "test_table")]
@@ -13,15 +14,15 @@ pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub id: i32,
     #[sea_orm(column_type = "Text")]
-    pub color: String,
+    pub color: Option<String>,
     #[sea_orm(column_type = "Text")]
-    pub content: String,
+    pub content: Option<String>,
     #[sea_orm(column_name = "createTime", column_type = "Text")]
-    pub create_time: String,
+    pub create_time: Option<String>,
     #[sea_orm(column_name = "updateTime", column_type = "Text")]
-    pub update_time: String,
+    pub update_time: Option<String>,
     #[sea_orm(column_type = "Text")]
-    pub status: i8,
+    pub status: Option<i8>,
     #[sea_orm(column_name = "isDelete")]
     pub is_delete: i32,
 }
@@ -31,12 +32,14 @@ pub enum Relation {}
 
 #[async_trait]
 impl ActiveModelBehavior for ActiveModel {
+
+    // 这里的self为什么可以改成mut 
     async fn before_save<C>(mut self, db: &C, insert: bool) -> Result<Self, DbErr>
     where
         C: ConnectionTrait
     {
         if insert {
-            self.id = ActiveValue::Set(1);
+            self.id = ActiveValue::Set(id::next_id() as i32);
         }
         Ok(self)
     }

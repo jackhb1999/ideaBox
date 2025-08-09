@@ -3,13 +3,15 @@ mod entity;
 mod handle;
 mod response;
 
+mod id;
+
 use crate::error::{ApiError, ApiResult};
 use dirs::{data_dir, data_local_dir};
 use rusqlite::Connection;
 use sea_orm::{ConnectionTrait, Database, DatabaseConnection, DbBackend, Statement};
 use std::path::{Path, PathBuf};
 use tauri::State;
-use crate::handle::{list,create};
+use crate::handle::*;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -22,11 +24,12 @@ fn greet(name: &str) -> String {
 pub fn run() {
     // 初始化
     init().unwrap();
+    id::init().unwrap();
     let db = tauri::async_runtime::block_on(establish_connection()).unwrap();
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .manage(db)
-        .invoke_handler(tauri::generate_handler![greet,list,create])
+        .invoke_handler(tauri::generate_handler![greet,list,create,update,delete])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -61,11 +64,11 @@ fn connect_or_create_database(path: &PathBuf) -> Result<Connection, rusqlite::Er
         conn.execute(
             "CREATE TABLE IF NOT EXISTS test_table (
                 id INTEGER PRIMARY KEY,
-                color TEXT NOT NULL,
-                content TEXT NOT NULL,
-                createTime TEXT NOT NULL,
-                updateTime TEXT NOT NULL,
-                status TEXT NOT NULL,
+                color TEXT NULL,
+                content TEXT NULL,
+                createTime TEXT NULL,
+                updateTime TEXT NULL,
+                status INTEGER NULL,
                 isDelete INTEGER NOT NULL
             )",
             [],

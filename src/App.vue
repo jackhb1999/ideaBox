@@ -14,7 +14,8 @@ import {message} from 'ant-design-vue';
 // }
 
 import {useWindowSize} from '@vueuse/core'
-import {CardStatus, Color, Item, newItem} from "../src/types/Item.ts";
+import {CardStatus, Color, Item, newItem} from "@/types/Item.ts";
+import {ApiRespose} from "@/types/Respose.ts";
 
 const {width} = useWindowSize()
 
@@ -30,57 +31,7 @@ const showMessage = () => {
 };
 
 // 列表
-const listData: Reactive<Item[]> = reactive([
-  {
-    color: Color.blue,
-    content: '',
-    createTime: new Date(),
-    updateTime: undefined,
-    status: CardStatus.edit,
-    order: 0
-  },
-  {
-    color: Color.blue,
-    content: '我思故我在 在一在二在三在四 在五在六在其再把在救灾是',
-    createTime: new Date(),
-    updateTime: undefined,
-    status: CardStatus.view,
-    order: 0
-  },
-  {
-    color: Color.red,
-    content: '我思故我在',
-    createTime: new Date(),
-    updateTime: undefined,
-    status: CardStatus.fold,
-    order: 0
-  },
-  {
-    color: Color.orange,
-    content: '我思故我在 在一在二在三在四 在五在六在其再把在救灾是',
-    createTime: new Date(),
-    updateTime: undefined,
-    status: CardStatus.fold,
-    order: 0
-  },
-  {
-    color: Color.lime,
-    content: '我思故我在',
-    createTime: new Date(),
-    updateTime: undefined,
-    status: CardStatus.fold,
-    order: 0
-  },
-  {
-    color: Color.rose,
-    content: '我思故我在',
-    createTime: new Date(),
-    updateTime: undefined,
-    status: CardStatus.fold,
-    order: 0
-  },
-
-])
+const listData: Reactive<Item[]> = reactive([])
 
 // 新增
 async function addItem() {
@@ -92,20 +43,37 @@ async function addItem() {
 }
 
 // 修改
-async function updateItem(item: Item) {
+async function updateItem(item: Item, index: number) {
   item.status = CardStatus.view
-  item.updateTime = item.createTime
-
-  invoke("create", {params:item}).then((res) => {
-    console.log(98, res)
-  })
+  item.updateTime = new Date()
+  if (item.id == null) {
+    invoke<ApiRespose<Item>>("create", {params: item}).then((res: ApiRespose<Item>) => {
+      if (res.code == 200) {
+        item = res.data as Item
+      }
+    })
+  } else {
+    invoke<ApiRespose<Item>>("update", {params: item}).then((res: ApiRespose<Item>) => {
+      if (res.code == 200) {
+        item = res.data as Item
+      }
+    })
+  }
+  listData[index] = item
 }
 
 // 删除
 async function deleteItem(item: Item) {
   const index = listData.indexOf(item);
   if (index !== -1) {
-    listData.splice(index, 1); // 移除第一个 2
+    if (item.id != null) {
+      invoke<ApiRespose<null>>("delete", {id: item.id}).then((res: ApiRespose<null>) => {
+        if (res.code == 200) {
+          message.success(res.msg)
+        }
+      })
+    }
+    listData.splice(index, 1); // 移除第一个
   }
 }
 
@@ -132,10 +100,11 @@ async function foldOff() {
 }
 
 async function getList() {
-  const list:Item[] = await invoke("list", {});
-  console.log(131,list)
+  const list: Item[] = await invoke("list", {});
+  console.log(131, list)
   listData.push(...list)
 }
+
 getList()
 // async function greet() {
 //   // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -169,7 +138,7 @@ getList()
         </div>
       </div>
     </div>
-    <template v-for="item in listData">
+    <template v-for="(item,index) in listData">
       <div class="justify-items-end" v-if="item.status === CardStatus.edit">
         <!--      新增卡片-->
         <a-card hoverable class="container" :style="{width,backgroundColor:item.color}">
@@ -234,8 +203,8 @@ getList()
             </a-flex>
           </template>
           <template #actions>
-            <CheckOutlined @click="updateItem(item)"/>
-            <CloseOutlined/>
+            <CheckOutlined @click="updateItem(item,index)"/>
+            <CloseOutlined @click="deleteItem(item)"/>
           </template>
           <a-card-meta>
             <template #description>

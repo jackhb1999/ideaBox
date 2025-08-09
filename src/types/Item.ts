@@ -1,4 +1,5 @@
 export interface Item {
+    id:  number | null
     // 颜色
     color: Color
     // 内容
@@ -16,6 +17,7 @@ export interface Item {
 
 export class newItem {
     addItem: Item = {
+        id: null,
         color: Color.blue,
         content: '',
         createTime: new Date(),
